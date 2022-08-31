@@ -150,7 +150,7 @@ const profile = (req, res) => {
 
     const { veterinarian } = req;
 
-    res.json({ profile: veterinarian });
+    res.json({ veterinarian });
 };
 
 export {
