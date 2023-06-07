@@ -5,160 +5,150 @@ import registerEmail from "../helpers/registerEmail.js";
 import forgottenPassEmail from "../helpers/forgottenPassEmail.js";
 
 const register = async (req, res) => {
-    const { email, name } = req.body;
+  const { email, name } = req.body;
 
-    const userExists = await Veterinarian.findOne({ email });
+  const userExists = await Veterinarian.findOne({ email });
 
-    if (userExists) {
-        const error = new Error('This e-mail is being used');
-        return res.status(400).json({ msg: error.message });
-    }
+  if (userExists) {
+    const error = new Error("This e-mail is being used");
+    return res.status(400).json({ msg: error.message });
+  }
 
-    try {
-        //Creates a new veterinarian
-        const veterinarian = new Veterinarian(req.body);
-        const savedVeterinarian = await veterinarian.save();
+  try {
+    //Creates a new veterinarian
+    const veterinarian = new Veterinarian(req.body);
+    const savedVeterinarian = await veterinarian.save();
 
-        // Send email
-        registerEmail({
-            email,
-            name,
-            token: savedVeterinarian.token
-        });
+    // Send email
+    registerEmail({
+      email,
+      name,
+      token: savedVeterinarian.token,
+    });
 
-        res.json({ msg: "Registering new user..." });
-    } catch (error) {
-        console.log(error);
-    }
-
-
+    res.json({ msg: "Registering new user..." });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const confirm = async (req, res) => {
-    const { token } = req.params;
-    const userConfirm = await Veterinarian.findOne({ token });
+  const { token } = req.params;
+  const userConfirm = await Veterinarian.findOne({ token });
 
-    if (!userConfirm) {
-        const error = new Error("Wrong token");
-        return res.status(404).json({ msg: error.message });
-    }
+  if (!userConfirm) {
+    const error = new Error("Wrong token");
+    return res.status(404).json({ msg: error.message });
+  }
 
-    try {
-        userConfirm.token = null;
-        userConfirm.confirmed = true;
-        await userConfirm.save();
+  try {
+    userConfirm.token = null;
+    userConfirm.confirmed = true;
+    await userConfirm.save();
 
-        res.json({ msg: "Account validated" });
-    } catch (error) {
-        console.log(error);
-    }
+    res.json({ msg: "Account validated" });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const authUser = async (req, res) => {
-    const { email, password } = req.body
+  const { email, password, keep } = req.body;
+  console.log(req.body);
+  const user = await Veterinarian.findOne({ email });
 
-    const user = await Veterinarian.findOne({ email });
+  //if the user exists
+  if (!user) {
+    const error = new Error("User doesn't exists");
+    return res.status(404).json({ msg: error.message });
+  }
 
+  //if the user is confirmed
+  if (!user.confirmed) {
+    const error = new Error("Your acount has not been confirmed yet");
+    return res.status(403).json({ msg: error.message });
+  }
 
-    //if the user exists
-    if (!user) {
-        const error = new Error("User doesn't exists");
-        return res.status(404).json({ msg: error.message });
-    }
-
-    //if the user is confirmed
-    if (!user.confirmed) {
-        const error = new Error("Your acount has not been confirmed yet");
-        return res.status(403).json({ msg: error.message });
-    }
-
-    if (await user.verifyPassword(password)) {
-        //console.log('Password verified');
-
-        res.json({ token: generateJWT(user.id) });
-    } else {
-        const error = new Error("Your password is incorrect");
-        return res.status(403).json({ msg: error.message });
-    }
-
+  if (await user.verifyPassword(password)) {
+    //console.log('Password verified');
+    const r = generateJWT(user.id, keep);
+    res.json({ token: r });
+  } else {
+    const error = new Error("Your password is incorrect");
+    return res.status(403).json({ msg: error.message });
+  }
 };
-
 
 const forgottenPassword = async (req, res) => {
-    const { email } = req.body;
+  const { email } = req.body;
 
-    const veterinarianExists = await Veterinarian.findOne({ email });
-    if (!veterinarianExists) {
-        const error = new Error('User does not exist');
-        return res.status(400).json({ msg: error.message });
-    }
+  const veterinarianExists = await Veterinarian.findOne({ email });
+  if (!veterinarianExists) {
+    const error = new Error("User does not exist");
+    return res.status(400).json({ msg: error.message });
+  }
 
-    try {
-        veterinarianExists.token = generateToken();
-        await veterinarianExists.save();
+  try {
+    veterinarianExists.token = generateToken();
+    await veterinarianExists.save();
 
-        //Send email
-        forgottenPassEmail({
-            email,
-            name: veterinarianExists.name,
-            token: veterinarianExists.token,
-        });
+    //Send email
+    forgottenPassEmail({
+      email,
+      name: veterinarianExists.name,
+      token: veterinarianExists.token,
+    });
 
-        res.json({ msg: "We sent instructions to your e-mail" });
-    } catch (error) {
-        console.log(error);
-    }
+    res.json({ msg: "We sent instructions to your e-mail" });
+  } catch (error) {
+    console.log(error);
+  }
 };
 const checkPToken = async (req, res) => {
-    const { token } = req.params;
+  const { token } = req.params;
 
-    const validToken = await Veterinarian.findOne({ token });
+  const validToken = await Veterinarian.findOne({ token });
 
-    if (validToken) {
-
-        res.json({ msg: "Valid token, user exists" });
-    } else {
-        const error = new Error('Token not valid');
-        return res.status(400).json({ msg: error.message });
-    };
+  if (validToken) {
+    res.json({ msg: "Valid token, user exists" });
+  } else {
+    const error = new Error("Token not valid");
+    return res.status(400).json({ msg: error.message });
+  }
 };
 const newPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
 
-    const { token } = req.params;
-    const { password } = req.body;
+  const veterinarian = await Veterinarian.findOne({ token });
 
-    const veterinarian = await Veterinarian.findOne({ token });
+  if (!veterinarian) {
+    const error = new Error("Token not valid");
+    return res.status(400).json({ msg: error.message });
+  }
 
-    if (!veterinarian) {
-        const error = new Error('Token not valid');
-        return res.status(400).json({ msg: error.message });
-    }
-
-    try {
-        veterinarian.token = null;
-        veterinarian.password = password;
-        await veterinarian.save();
-        res.json({ msg: "Password modified" });
-    } catch (error) {
-        console.log(error);
-    }
+  try {
+    veterinarian.token = null;
+    veterinarian.password = password;
+    await veterinarian.save();
+    res.json({ msg: "Password modified" });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-
-
 const profile = (req, res) => {
+  const { veterinarian } = req;
 
-    const { veterinarian } = req;
-
-    res.json({ veterinarian });
+  res.json({ veterinarian });
 };
 
 export {
-    register,
-    profile,
-    confirm,
-    forgottenPassword,
-    authUser,
-    checkPToken,
-    newPassword
+  register,
+  profile,
+  confirm,
+  forgottenPassword,
+  authUser,
+  checkPToken,
+  newPassword,
 };
