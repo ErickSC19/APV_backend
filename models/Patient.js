@@ -6,7 +6,7 @@ const patientSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    propietary: {
+    owner: {
       type: String,
       required: true,
     },
