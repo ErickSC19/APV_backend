@@ -79,6 +79,29 @@ const authUser = async (req, res) => {
   }
 };
 
+const googleAuth = async (req, res) => {
+  const { email, firebaseUid } = req.body;
+  console.log(req.body);
+  const user = await Veterinarian.findOne({ email });
+  if (user) {
+    if (!firebaseUid) {
+      const error = new Error("Error with login.");
+      return res.status(403).json({ msg: error.message });
+    }
+    const r = generateJWT(user.id);
+    res.json({ token: r });
+  } else {
+    if (!firebaseUid) {
+      const error = new Error("Error with login.");
+      return res.status(403).json({ msg: error.message });
+    }
+    const veterinarian = new Veterinarian(req.body);
+    const savedVeterinarian = await veterinarian.save();
+    const r = generateJWT(savedVeterinarian.id);
+    res.json({ token: r });
+  }
+};
+
 const forgottenPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -151,4 +174,5 @@ export {
   authUser,
   checkPToken,
   newPassword,
+  googleAuth
 };

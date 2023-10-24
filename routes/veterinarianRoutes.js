@@ -8,6 +8,7 @@ import {
   forgottenPassword,
   checkPToken,
   newPassword,
+  googleAuth
 } from "../controllers/veterinarianController.js";
 
 const router = express.Router();
@@ -16,6 +17,7 @@ const router = express.Router();
 router.post("/", register);
 router.get("/confirm/:token", confirm);
 router.post("/login", authUser);
+router.post("/google-login", googleAuth);
 router.post("/forgotten-password", forgottenPassword);
 
 router.route("/password-change/:token").get(checkPToken).post(newPassword);

@@ -10,7 +10,6 @@ const veterinarianSchema = mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
   },
   email: {
     type: String,
@@ -35,6 +34,10 @@ const veterinarianSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  firebaseUid: {
+    type: String,
+    unique: true
+  }
 });
 
 veterinarianSchema.pre("save", async function (next) {

@@ -5,6 +5,7 @@ const addPatient = async (req, res) => {
   patient.veterinarian = req.veterinarian._id;
   try {
     const savedPatient = await patient.save();
+    console.log('---------------------------------',savedPatient);
     res.json(savedPatient);
   } catch (error) {
     console.log(error);
@@ -27,7 +28,7 @@ const getPatient = async (req, res) => {
     res.status(404).json({ msg: "Not found" });
   }
 
-  if (patient.veterinarian._id.toString() !== req.veterinarian._id.toString()) {
+  if (patient.veterinarian.toString() !== req.veterinarian._id.toString()) {
     return res.json({ msg: "Not valid action" });
   }
   //get
