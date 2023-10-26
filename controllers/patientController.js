@@ -66,14 +66,18 @@ const updatePatient = async (req, res) => {
 
 const deletePatient = async (req, res) => {
   const { id } = req.params;
-  const patient = await Patient.findById(id);
-
-  if (!patient) {
-    res.status(404).json({ msg: "Not found" });
+  let patient;
+  try {
+    patient = await Patient.findById(id);
+  } catch (error) {
+    if (!patient) {
+      return res.status(404).json({ msg: "Not found" });
+    }
   }
 
+
   if (patient.veterinarian._id.toString() !== req.veterinarian._id.toString()) {
-    return res.json({ msg: "Not valid action" });
+    return res.status(403).json({ msg: "Not valid action" });
   }
 
   try {
