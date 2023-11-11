@@ -21,6 +21,8 @@ const corsOptions = {
       callback(new Error("No permited by CORS"));
     }
   },
+ //methods: "GET,PUT,POST,DELETE,PATCH", // Especifica los métodos permitidos
+ //optionsSuccessStatus: 200, // Especifica el código de estado de respuesta para las pre-solicitudes OPTIONS
 };
 
 app.use(cors(corsOptions));

@@ -82,6 +82,10 @@ const authUser = async (req, res) => {
 const googleAuth = async (req, res) => {
   const { email, firebaseUid } = req.body;
   console.log(req.body);
+  if (!req.body.name) {
+    const splEmail = email.split('@');
+    req.body.name = splEmail[0];
+  }
   const user = await Veterinarian.findOne({ email });
   if (user) {
     if (!firebaseUid) {
