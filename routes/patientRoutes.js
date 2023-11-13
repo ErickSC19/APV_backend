@@ -16,6 +16,7 @@ router
   .route("/:id")
   .get(checkAuth, getPatient)
   .put(checkAuth, updatePatient)
+  .patch(checkAuth, updatePatient)
   .delete(checkAuth, deletePatient);
 
 export default router;

@@ -79,7 +79,7 @@ const authUser = async (req, res) => {
   }
 };
 
-const googleAuth = async (req, res) => {
+const firebaseAuth = async (req, res) => {
   const { email, firebaseUid } = req.body;
   console.log(req.body);
   if (!req.body.name) {
@@ -178,5 +178,5 @@ export {
   authUser,
   checkPToken,
   newPassword,
-  googleAuth
+  firebaseAuth
 };
